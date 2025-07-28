@@ -26,6 +26,34 @@ function stock_path(nt: number, dt: number, m: number, s: number) {
 }
 
 function App() {
+  // Reusable function for instant play
+  function instantPlayGames(numGames: number) {
+    let bal = balance;
+    let hist = [...balanceHistory];
+    let lastRes: 'profit' | 'loss' | null = null;
+    for (let i = 0; i < numGames; i++) {
+      const newPath = stock_path(NT, 1 / NT, Math.random() > 0.5 ? Math.log(1 + aParameter) : Math.log(1 - aParameter), volatility);
+      bal -= newPath[0];
+      let sellPrice = newPath[newPath.length - 1];
+      let stopLoss = newPath[0] * (1 - R / 100);
+      for (let t = 0; t < newPath.length; t++) {
+        if (newPath[t] <= stopLoss) {
+          sellPrice = newPath[t];
+          break;
+        }
+      }
+      bal += sellPrice;
+      lastRes = sellPrice > newPath[0] ? 'profit' : 'loss';
+      if (hist[hist.length - 1] !== bal) {
+        hist.push(bal);
+      }
+    }
+    setBalance(bal);
+    setBalanceHistory(hist);
+    setSold(true);
+    setPlaying(false);
+    setLastResult(lastRes);
+  }
   function generate_path() {
     const drift = Math.random() > 0.5 ? Math.log(1 + aParameter) : Math.log(1 - aParameter);
     setDrift(drift);
@@ -278,6 +306,18 @@ function App() {
             // disabled={playing}
           >Play</button>
           <button onClick={() => setPlaying(false)} disabled={!playing}>Pause</button>
+          <button
+            style={{ marginLeft: 16 }}
+            onClick={() => instantPlayGames(1)}
+          >Play 1 Game</button>
+          <button
+            style={{ marginLeft: 8 }}
+            onClick={() => instantPlayGames(10)}
+          >Play 10 Games</button>
+          <button
+            style={{ marginLeft: 8 }}
+            onClick={() => instantPlayGames(100)}
+          >Play 100 Games</button>
         </div>
       </div>
       <div>
