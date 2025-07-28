@@ -47,6 +47,7 @@ function App() {
   const [playing, setPlaying] = useState<boolean>(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const intervalRef = useRef(null);
+  const [balanceHistory, setBalanceHistory] = useState<number[]>([INITIAL_BALANCE]);
 
   useEffect(() => {
     if (svgRef.current) {
@@ -144,14 +145,32 @@ function App() {
     if (time < path.length && path[time] <= stopLoss) {
       // Sold at stop loss
       profit = path[time] > path[0];
-      setBalance(bal => bal + (path[time]));
+      setBalance(bal => {
+        const newBalance = bal + path[time];
+        setBalanceHistory(hist => {
+          if (hist[hist.length - 1] !== newBalance) {
+            return [...hist, newBalance];
+          }
+          return hist;
+        });
+        return newBalance;
+      });
       setSold(true);
       setPlaying(false);
       setLastResult(profit ? 'profit' : 'loss');
     } else if (time === path.length - 1) {
       // Sold at end of round
       profit = path[time] > path[0];
-      setBalance(bal => bal + (path[time]));
+      setBalance(bal => {
+        const newBalance = bal + path[time];
+        setBalanceHistory(hist => {
+          if (hist[hist.length - 1] !== newBalance) {
+            return [...hist, newBalance];
+          }
+          return hist;
+        });
+        return newBalance;
+      });
       setSold(true);
       setPlaying(false);
       setLastResult(profit ? 'profit' : 'loss');
@@ -169,7 +188,7 @@ function App() {
             return t;
           }
         });
-      }, 5);
+      }, 1);
     } else if (!playing && intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -183,84 +202,119 @@ function App() {
   }, [playing, path.length, time]);
 
   return (
-    <>
-      <div style={{ marginBottom: 12, fontSize: 20, color: lastResult === 'profit' ? 'blue' : lastResult === 'loss' ? 'red' : 'black' }}>
-        Account Balance: ${balance.toFixed(2)}
-      </div>
-      <svg ref={svgRef} width="800" height="600" />
-      <div style={{ marginTop: 16, display: 'flex', flexDirection: 'row', gap: '24px', maxWidth: 900, alignItems: 'center', justifyContent: 'center', marginLeft: 'auto', marginRight: 'auto' }}>
-        <label style={{ display: 'flex', alignItems: 'center', minWidth: 180 }}>
-          <span style={{ minWidth: 70, display: 'inline-block' }}>A: {aParameter.toFixed(2)}</span>
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={aParameter}
-            onChange={e => {
-              const newA = parseFloat(e.target.value);
-              setAParameter(newA);
-              setPath(generate_path());
-              setTime(0);
-              setPlaying(false);
-            }}
-            style={{ marginLeft: 8, width: 100 }}
-          />
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', minWidth: 180 }}>
-          <span style={{ minWidth: 70, display: 'inline-block' }}>Volatility: {volatility.toFixed(2)}</span>
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={volatility}
-            onChange={e => {
-              const newV = parseFloat(e.target.value);
-              setVolatility(newV);
-              setPath(generate_path());
-              setTime(0);
-              setPlaying(false);
-            }}
-            style={{ marginLeft: 8, width: 100 }}
-          />
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', minWidth: 180 }}>
-          <span style={{ minWidth: 70, display: 'inline-block' }}>R: {R.toFixed(0)}%</span>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            step={1}
-            value={R}
-            onChange={e => {
-              setR(parseInt(e.target.value));
-            }}
-            style={{ marginLeft: 8, width: 100 }}
-          />
-        </label>
-      </div>
-      <div style={{ marginTop: 16 }}>
-        <button
-          onClick={() => {
-            if (time >= path.length || sold) {
-              const newPath = generate_path();
-              setPath(newPath);
-              setTime(0);
-              setSold(false);
-              setLastResult(null);
-              if (newPath.length > 0) {
-                setBalance(bal => bal - newPath[0]);
+    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', width: '100%' }}>
+      <div>
+        <div style={{ marginBottom: 12, fontSize: 20, color: lastResult === 'profit' ? 'blue' : lastResult === 'loss' ? 'red' : 'black' }}>
+          Account Balance: ${balance.toFixed(2)}
+        </div>
+        <svg ref={svgRef} width="800" height="600" />
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'row', gap: '24px', maxWidth: 900, alignItems: 'center', justifyContent: 'center', marginLeft: 'auto', marginRight: 'auto' }}>
+          <label style={{ display: 'flex', alignItems: 'center', minWidth: 180 }}>
+            <span style={{ minWidth: 70, display: 'inline-block' }}>A: {aParameter.toFixed(2)}</span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={aParameter}
+              onChange={e => {
+                const newA = parseFloat(e.target.value);
+                setAParameter(newA);
+                setPath(generate_path());
+                setTime(0);
+                setPlaying(false);
+              }}
+              style={{ marginLeft: 8, width: 100 }}
+            />
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', minWidth: 180 }}>
+            <span style={{ minWidth: 70, display: 'inline-block' }}>Volatility: {volatility.toFixed(2)}</span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={volatility}
+              onChange={e => {
+                const newV = parseFloat(e.target.value);
+                setVolatility(newV);
+                setPath(generate_path());
+                setTime(0);
+                setPlaying(false);
+              }}
+              style={{ marginLeft: 8, width: 100 }}
+            />
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', minWidth: 180 }}>
+            <span style={{ minWidth: 70, display: 'inline-block' }}>R: {R.toFixed(0)}%</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={R}
+              onChange={e => {
+                setR(parseInt(e.target.value));
+              }}
+              style={{ marginLeft: 8, width: 100 }}
+            />
+          </label>
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <button
+            onClick={() => {
+              if (time >= path.length || sold) {
+                const newPath = generate_path();
+                setPath(newPath);
+                setTime(0);
+                setSold(false);
+                setLastResult(null);
+                if (newPath.length > 0) {
+                  setBalance(bal => bal - newPath[0]);
+                }
               }
-            }
-            setPlaying(true);
-          }}
-          // disabled={playing}
-        >Play</button>
-        <button onClick={() => setPlaying(false)} disabled={!playing}>Pause</button>
+              setPlaying(true);
+            }}
+            // disabled={playing}
+          >Play</button>
+          <button onClick={() => setPlaying(false)} disabled={!playing}>Pause</button>
+        </div>
       </div>
-    </>
+      <div>
+        <BalanceChart balanceHistory={balanceHistory} />
+      </div>
+    </div>
   )
+}
+
+function BalanceChart({ balanceHistory }: { balanceHistory: number[] }) {
+  const chartRef = useRef<SVGSVGElement>(null);
+  useEffect(() => {
+    const width = 400;
+    const height = 300;
+    const margin = { top: 30, right: 30, bottom: 50, left: 60 };
+    const svg = d3.select(chartRef.current);
+    svg.selectAll('*').remove();
+    if (balanceHistory.length < 2) return;
+    const x = d3.scaleLinear().domain([0, balanceHistory.length - 1]).range([margin.left, width - margin.right]);
+    const y = d3.scaleLinear().domain([d3.min(balanceHistory) ?? 0, d3.max(balanceHistory) ?? 1]).range([height - margin.bottom, margin.top]);
+    svg.append('g')
+      .attr('transform', `translate(0,${height - margin.bottom})`)
+      .call(d3.axisBottom(x));
+    svg.append('g')
+      .attr('transform', `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y));
+    svg.append('path')
+      .datum(balanceHistory)
+      .attr('fill', 'none')
+      .attr('stroke', 'blue')
+      .attr('stroke-width', 2)
+      .attr('d', d3.line<number>()
+        .x((d, i) => x(i))
+        .y(d => y(d))
+      );
+  }, [balanceHistory]);
+  return <svg ref={chartRef} width={400} height={300} />;
 }
 
 export default App;
