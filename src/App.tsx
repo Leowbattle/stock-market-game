@@ -25,13 +25,15 @@ function stock_path(nt: number, dt: number, m: number, s: number) {
 function App() {
   function generate_path() {
     const drift = Math.random() > 0.5 ? Math.log(1 + aParameter) : Math.log(1 - aParameter);
+    setDrift(drift);
     return stock_path(252, 1 / 252, drift, volatility);
   }
 
   const [volatility, setVolatility] = useState<number>(0.2);
   const [aParameter, setAParameter] = useState<number>(0.3);
+  const [drift, setDrift] = useState<number>(0);
 
-  const [path, setPath] = useState<number[]>(generate_path());
+  const [path, setPath] = useState<number[]>([]);
   const [time, setTime] = useState<number>(0);
   const [playing, setPlaying] = useState<boolean>(false);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -50,6 +52,12 @@ function App() {
 
       const yMin = (d3.min(prices) || 0) - 10;
       const yMax = (d3.max(prices) || 1) + 10;
+
+      // const m = Math.log(1 + aParameter);
+      // const s = volatility;
+      
+      // const yMin = path[0] * Math.exp(m - 0.5 * s ** 2 - 3.5 * s);
+      // const yMax = path[0] * Math.exp(m - 0.5 * s ** 2 + 3.5 * s);
 
       const x = d3.scaleLinear().domain([0, path.length - 1]).range([margin.left, width - margin.right]);
       const y = d3.scaleLinear().domain([yMin, yMax]).range([height - margin.bottom, margin.top]);
