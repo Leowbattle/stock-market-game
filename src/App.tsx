@@ -281,6 +281,7 @@ function App() {
         </div>
       </div>
       <div>
+        <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 18, marginBottom: 8 }}>Balance History</div>
         <BalanceChart balanceHistory={balanceHistory} />
       </div>
     </div>
