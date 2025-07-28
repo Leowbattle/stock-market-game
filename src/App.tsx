@@ -258,7 +258,6 @@ function App() {
           // disabled={playing}
         >Play</button>
         <button onClick={() => setPlaying(false)} disabled={!playing}>Pause</button>
-        <span style={{ marginLeft: 16 }}>Step: {time}</span>
       </div>
     </>
   )
