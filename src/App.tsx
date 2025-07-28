@@ -63,7 +63,7 @@ function App() {
   const INITIAL_BALANCE = 100;
   const [volatility, setVolatility] = useState<number>(0.2);
   const [aParameter, setAParameter] = useState<number>(0.3);
-  const [drift, setDrift] = useState<number>(0);
+  const [_drift, setDrift] = useState<number>(0);
   const [R, setR] = useState<number>(10); // Stop loss percentage
 
   const [balance, setBalance] = useState<number>(INITIAL_BALANCE);
@@ -74,7 +74,7 @@ function App() {
   const [time, setTime] = useState<number>(0);
   const [playing, setPlaying] = useState<boolean>(false);
   const svgRef = useRef<SVGSVGElement>(null);
-  const intervalRef = useRef(null);
+  const intervalRef = useRef<number>(null);
   const [balanceHistory, setBalanceHistory] = useState<number[]>([INITIAL_BALANCE]);
 
   useEffect(() => {
@@ -142,7 +142,7 @@ function App() {
         .attr("stroke", "steelblue")
         .attr("stroke-width", 1.5)
         .attr("d", d3.line<number>()
-          .x((d, i) => x(i))
+          .x((_d, i) => x(i))
           .y(d => y(d))
         );
 
@@ -351,7 +351,7 @@ function BalanceChart({ balanceHistory }: { balanceHistory: number[] }) {
       .attr('stroke', 'blue')
       .attr('stroke-width', 2)
       .attr('d', d3.line<number>()
-        .x((d, i) => x(i))
+        .x((_d, i) => x(i))
         .y(d => y(d))
       );
   }, [balanceHistory]);
